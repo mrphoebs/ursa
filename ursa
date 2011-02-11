@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+
+require (File.join(File.dirname(__FILE__),"lib","helpers"))
+
+include Ursa
+
+$CURRENT_DIR = Dir.pwd
+#establishing the current directory where the engine is called from
+
+load_posts
+render_posts
