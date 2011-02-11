@@ -103,7 +103,7 @@ module Ursa
 				end				
 			end
 			sort_posts
-			
+			nil
 		else
 			puts "Error: no directory _posts found in the working directory"
 		end
