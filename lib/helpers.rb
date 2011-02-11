@@ -3,11 +3,11 @@ require 'yaml'
 require 'haml'
 require 'tilt'
 require 'maruku'
-
+require 'fileutils'
 
 class Post
 
-	attr_accessor :title, :date, :layout, :categories, :content
+	attr_accessor :title, :date, :layout, :categories, :content, :type
 
 end
 
@@ -65,6 +65,10 @@ module Ursa
 		html_content = to_html(markdown)
 		post = Post.new
 		post.title = yaml_matter["title"]
+		if yaml_matter["type"]==nil
+			post.type="blogpost"
+		end
+
 		if yaml_matter["date"]==nil
 			post.date = Date.today
 		else
@@ -103,7 +107,6 @@ module Ursa
 				end				
 			end
 			sort_posts
-			nil
 		else
 			puts "Error: no directory _posts found in the working directory"
 		end
@@ -111,6 +114,9 @@ module Ursa
 
 	def render_posts
 		if(!File.directory?(File.join($CURRENT_DIR,"site")))
+			Dir.mkdir(File.join($CURRENT_DIR,"site"))
+		else
+			FileUtils.rm_rf(File.join($CURRENT_DIR,"site"))
 			Dir.mkdir(File.join($CURRENT_DIR,"site"))
 		end
 
