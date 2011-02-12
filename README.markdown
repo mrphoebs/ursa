@@ -8,6 +8,12 @@ download the git repo and execute.
 
 	chmod +x ursa
 
+gems required to run ursa are
+
+	haml
+	tilt
+	maruku
+	
 the executable should be accessible when it is run in a new directory with the following directory structure.
 
 
