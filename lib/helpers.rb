@@ -178,7 +178,7 @@ EOH
 		Ursa::POSTS.each do |post|
 			if(File.exists?(File.join($CURRENT_DIR,"_layouts",post.layout+".haml")))
 				template = Tilt.new((File.join($CURRENT_DIR,"_layouts",post.layout+".haml")))
-				final_page_content = template.render(Object.new,:post=>post,:posts=>Ursa::POSTS,:categories=>Ursa::CATEGORIES)
+				final_page_content = template.render(Object.new,:post=>post,:posts=>Ursa::POSTS,:categories=>Ursa::CATEGORIES,:config=>Ursa::CONFIG)
 				file_name = post.file
  				static_file = File.open(File.join($CURRENT_DIR,"#{Ursa::CONFIG["sitedir"]}",file_name),"w")
 				static_file.write final_page_content
@@ -196,7 +196,7 @@ EOH
 			atom_haml_file.close 
 		end
 		template = Tilt.new(File.join($CURRENT_DIR,"atom.haml"))
-		atom_content = template.render(Object.new,:posts=>Ursa::POSTS,:categories=>Ursa::CATEGORIES)
+		atom_content = template.render(Object.new,:posts=>Ursa::POSTS,:categories=>Ursa::CATEGORIES,:config=>Ursa::CONFIG)
 		static_file = File.open(File.join($CURRENT_DIR,"#{Ursa::CONFIG["sitedir"]}","atom.xml"),"w")
 		static_file.write atom_content
 		static_file.close
