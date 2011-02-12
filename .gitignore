@@ -4,3 +4,4 @@ _layouts
 _posts
 _includes
 _tags
+atom.haml

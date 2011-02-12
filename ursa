@@ -11,3 +11,4 @@ load_config
 compile_sass
 load_posts
 render_posts
+create_feed

@@ -8,10 +8,32 @@ require File.join('lib','config')
 
 class Post
 
-	attr_accessor :title, :date, :layout, :categories, :content, :type, :author
+	attr_accessor :title, :date, :layout, :categories, :content, :type, :author, :site_title, :file
 
 end
 
+atom_haml_str << EOH
+<?xml version="1.0" encoding="utf-8"?>
+%feed{:xmlns=>"http://www.w3.org/2005/Atom"}
+  %title~ site_title
+  %subtitle~ "***site subtitile***"
+  %link{:href=>"***site_url/atom.xml***",:rel=>"self"}
+  %link{:href=>"***site_url***"}
+  %id~ "***siteurl/uniqueid***"
+  %updated~ atom_time
+  %author
+    %name~ "***site author name***"
+    %email~ "***site author email***"
+  
+  - posts[0...10].each do |post|
+    %entry
+      %title~ post.title
+      %link{:href=>"***site url***"+post.file}
+      %id~ "***site url***"+post.file
+      %updated~ atom_date(post.date)
+      %content{:type=>"html"}
+        post.content
+EOH
 
 module Ursa
 
@@ -60,6 +82,7 @@ module Ursa
 		html_content = to_html(markdown)
 		post = Post.new
 		post.title = yaml_matter["title"]
+		post.file = post.title.gsub(/\W/,"_")+".html"
 		if yaml_matter["type"]==nil
 			post.type="#{Ursa::CONFIG["default_post_type"]}"
 		else
@@ -155,14 +178,27 @@ module Ursa
 			if(File.exists?(File.join($CURRENT_DIR,"_layouts",post.layout+".haml")))
 				template = Tilt.new((File.join($CURRENT_DIR,"_layouts",post.layout+".haml")))
 				final_page_content = template.render(Object.new,:post=>post,:posts=>Ursa::POSTS,:categories=>Ursa::CATEGORIES)
-				file_name = post.title.gsub(/\W/,"_")+".html"
-				static_file = File.open(File.join($CURRENT_DIR,"#{Ursa::CONFIG["sitedir"]}",file_name),"w")
+				file_name = post.file
+ 				static_file = File.open(File.join($CURRENT_DIR,"#{Ursa::CONFIG["sitedir"]}",file_name),"w")
 				static_file.write final_page_content
 				static_file.close
 			else
 				puts "Error no layout " + post.layout
 			end
 		end
+	end
+
+	def create_feed
+		if(!File.exists?(File.join($CURRENT_DIR,"atom.haml")))
+			atom_haml_file = File.open(File.join($CURRENT_DIR,"atom.haml"),"w")
+			atom_haml_file.write atom_haml_str
+			atom_haml_file.close 
+		end
+		template = Tilt.new(File.join($CURRENT_DIR,"atom.haml"))
+		atom_content = template.render(Object.new,:posts=>Ursa::POSTS,:categories=>Ursa::CATEGORIES)
+		static_file = File.open(File.join($CURRENT_DIR,"#{Ursa::CONFIG["sitedir"]}","atom.xml"),"w")
+		static_file.write atom_content
+		static_file.close
 	end
 
 #----------------------------------------------------------------------template helpers start from here---------------------
@@ -180,5 +216,24 @@ module Ursa
 
 	def js(path)
 		"<script type=\"text/javascript\" src=\"#{path}\"></script>"	
+	end
+
+	def site_title
+		Ursa::CONFIG["site_title"]
+	end
+
+	def atom_link
+		"<link href=\"atom.xml\" type=\"application/atom+xml\" rel=\"alternate\" title=\"#{site_title}\" />"
+	end
+
+	def atom_time
+		t = Time.now
+		str = t.strftime("%Y-%m-%d")+"T"+t.strftime("%T")+"Z"
+		str
+	end
+
+	def atom_date(t)
+		str = t.strftime("%Y-%m-%d")+"T00:00:00Z"
+		str
 	end
 end

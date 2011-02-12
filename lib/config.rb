@@ -9,6 +9,7 @@ module Ursa
 			"partialsdir" => "_tags",
 			"cssdir" => "css",
 			"sitedir" => "site",
+			"site_title" => "Ursa",
 			
 			"markdown_extension" => "markdown",	
 			"layout_extension" => "haml",
