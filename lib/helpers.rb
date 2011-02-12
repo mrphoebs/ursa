@@ -4,7 +4,7 @@ require 'haml'
 require 'tilt'
 require 'maruku'
 require 'fileutils'
-require File.join('lib','config')
+require File.join(File.dirname(__FILE__),'config')
 
 class Post
 
