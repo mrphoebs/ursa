@@ -6,7 +6,7 @@ module Ursa
 	CONFIG = {
 	
 			"postsdir" => "_posts",
-			"includesdir" => "_tags",
+			"partialsdir" => "_tags",
 			"cssdir" => "css",
 			"sitedir" => "site",
 			
