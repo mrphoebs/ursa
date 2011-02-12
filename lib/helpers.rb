@@ -4,10 +4,11 @@ require 'haml'
 require 'tilt'
 require 'maruku'
 require 'fileutils'
+require File.join('lib','config')
 
 class Post
 
-	attr_accessor :title, :date, :layout, :categories, :content, :type
+	attr_accessor :title, :date, :layout, :categories, :content, :type, :author
 
 end
 
@@ -34,22 +35,22 @@ module Ursa
 
 	def get_markdown(post_text)
 		puts post_text
-		markdown = post_text.split(/---\n/)[2...1000].join("")
+		markdown = post_text.split(/---\n/)[2...10000].join("")
 		markdown
 	end
 
 	def get_post_text(post)
-		if($CURRENT_DIR!=nil && File.exists?(File.join($CURRENT_DIR,'_posts',post+".markdown")))
-			post_file = File.open(File.join($CURRENT_DIR,'_posts',post+".markdown"),"r")
+		if($CURRENT_DIR!=nil && File.exists?(File.join($CURRENT_DIR,"#{Ursa::CONFIG["postsdir"]}",post+".#{Ursa::CONFIG["markdown_extension"]}")))
+			post_file = File.open(File.join($CURRENT_DIR,"#{Ursa::CONFIG["postsdir"]}",post+".#{Ursa::CONFIG["markdown_extension"]}"),"r")
 			post_text = post_file.read
 			post_file.close
 			post_text
 		end
 	end
 
-	def include(partial,map={})
-		if($CURRENT_DIR!=nil && File.exists?(File.join($CURRENT_DIR,'_includes',partials+".haml")))
-			template = Tilt.new(File.join($CURRENT_DIR,'_includes',partial+".haml"))
+	def tag(partial,map={})
+		if($CURRENT_DIR!=nil && File.exists?(File.join($CURRENT_DIR,"#{Ursa::CONFIG["includesdir"]}",partial.to_s+".#{Ursa::CONFIG["layout_extension"]}")))
+			template = Tilt.new(File.join($CURRENT_DIR,"#{Ursa::CONFIG["includesdir"]}",partial.to_s+".#{Ursa::CONFIG["layout_extension"]}"))
 			template.render(Object.new,:map=>map)
 		end
 	end
@@ -66,8 +67,16 @@ module Ursa
 		post = Post.new
 		post.title = yaml_matter["title"]
 		if yaml_matter["type"]==nil
-			post.type="blogpost"
+			post.type="#{Ursa::CONFIG["default_post_type"]}"
+		else
+			post.type=yaml_matter["type"]
 		end
+
+		if yaml_matter["author"]==nil
+			post.author="#{Ursa::CONFIG["author"]}"
+		else
+			post.author = yaml_matter["author"]
+		end		
 
 		if yaml_matter["date"]==nil
 			post.date = Date.today
@@ -76,7 +85,7 @@ module Ursa
 		end
 
 		if yaml_matter["layout"]==nil
-			post.layout = "post"
+			post.layout = "#{Ursa::CONFIG["default_layout"]}"
 		else
 			post.layout = yaml_matter["layout"]
 		end
@@ -89,9 +98,36 @@ module Ursa
 		post
 	end
 
+	def load_config
+		if(File.exists?(File.join($CURRENT_DIR,"_config.yml")))
+			begin
+				config = YAML::load_file(File.join($CURRENT_DIR,"_config.yml"))
+				raise "Invalid configuration file, its not a hash" if !config.is_a?(Hash)
+			rescue => err
+				puts err.to_s
+				config = {}
+			end
+			Ursa::CONFIG.merge!(config)
+		end
+	end
+
+	def compile_sass
+		if(File.directory?(File.join($CURRENT_DIR,"#{Ursa::CONFIG["cssdir"]}")))
+			sass_files = Dir.glob(File.join($CURRENT_DIR,"#{Ursa::CONFIG["cssdir"]}/*.sass"))
+
+			sass_files.each do |sass_file|
+				template = Tilt.new(sass_file)
+				css_content = template.render
+				css_file = File.open(sass_file.sub(/\.sass/,".css"),"w");
+				css_file.write css_content
+				css_file.close
+			end
+		end
+	end
+
 	def load_posts
-		if(File.directory?(File.join($CURRENT_DIR,"_posts")))
-			files = Dir.glob(File.join($CURRENT_DIR,"_posts/*.markdown"))
+		if(File.directory?(File.join($CURRENT_DIR,"#{Ursa::CONFIG["postsdir"]}")))
+			files = Dir.glob(File.join($CURRENT_DIR,"#{Ursa::CONFIG["postsdir"]}/*.#{Ursa::CONFIG["markdown_extension"]}"))
 			files.map!{|file_path| file_path.split("/").last.split(".").first}
 			
 			files.each do |file|
@@ -109,15 +145,16 @@ module Ursa
 			sort_posts
 		else
 			puts "Error: no directory _posts found in the working directory"
+			puts File.join($CURRENT_DIR,"#{Ursa::CONFIG["postsdir"]}")
 		end
 	end
 
 	def render_posts
-		if(!File.directory?(File.join($CURRENT_DIR,"site")))
-			Dir.mkdir(File.join($CURRENT_DIR,"site"))
+		if(!File.directory?(File.join($CURRENT_DIR,"#{Ursa::CONFIG["sitedir"]}")))
+			Dir.mkdir(File.join($CURRENT_DIR,"#{Ursa::CONFIG["sitedir"]}"))
 		else
-			FileUtils.rm_rf(File.join($CURRENT_DIR,"site"))
-			Dir.mkdir(File.join($CURRENT_DIR,"site"))
+			FileUtils.rm_rf(File.join($CURRENT_DIR,"#{Ursa::CONFIG["sitedir"]}"))
+			Dir.mkdir(File.join($CURRENT_DIR,"#{Ursa::CONFIG["sitedir"]}"))
 		end
 
 		Ursa::POSTS.each do |post|
@@ -125,7 +162,7 @@ module Ursa
 				template = Tilt.new((File.join($CURRENT_DIR,"_layouts",post.layout+".haml")))
 				final_page_content = template.render(Object.new,:post=>post,:posts=>Ursa::POSTS,:categories=>Ursa::CATEGORIES)
 				file_name = post.title.gsub(/\W/,"_")+".html"
-				static_file = File.open(File.join($CURRENT_DIR,"site",file_name),"w")
+				static_file = File.open(File.join($CURRENT_DIR,"#{Ursa::CONFIG["sitedir"]}",file_name),"w")
 				static_file.write final_page_content
 				static_file.close
 			else

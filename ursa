@@ -7,5 +7,7 @@ include Ursa
 $CURRENT_DIR = Dir.pwd
 #establishing the current directory where the engine is called from
 
+load_config
+compile_sass
 load_posts
 render_posts
