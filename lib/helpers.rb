@@ -8,7 +8,7 @@ require File.join('lib','config')
 
 class Post
 
-	attr_accessor :title, :date, :layout, :categories, :content, :type, :author, :site_title, :file
+	attr_accessor :title, :date, :layout, :categories, :content, :type, :author, :file
 
 end
 
