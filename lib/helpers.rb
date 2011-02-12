@@ -12,7 +12,9 @@ class Post
 
 end
 
-atom_haml_str << EOH
+module Ursa
+
+ATOM_TEMPLATE = <<EOH
 <?xml version="1.0" encoding="utf-8"?>
 %feed{:xmlns=>"http://www.w3.org/2005/Atom"}
   %title~ site_title
@@ -35,7 +37,6 @@ atom_haml_str << EOH
         post.content
 EOH
 
-module Ursa
 
 	POSTS = Array.new
 
@@ -191,7 +192,7 @@ module Ursa
 	def create_feed
 		if(!File.exists?(File.join($CURRENT_DIR,"atom.haml")))
 			atom_haml_file = File.open(File.join($CURRENT_DIR,"atom.haml"),"w")
-			atom_haml_file.write atom_haml_str
+			atom_haml_file.write Ursa::ATOM_TEMPLATE
 			atom_haml_file.close 
 		end
 		template = Tilt.new(File.join($CURRENT_DIR,"atom.haml"))
