@@ -48,12 +48,6 @@ module Ursa
 		end
 	end
 
-	def tag(partial,map={})
-		if($CURRENT_DIR!=nil && File.exists?(File.join($CURRENT_DIR,"#{Ursa::CONFIG["partialsdir"]}",partial.to_s+".#{Ursa::CONFIG["layout_extension"]}")))
-			template = Tilt.new(File.join($CURRENT_DIR,"#{Ursa::CONFIG["partialsdir"]}",partial.to_s+".#{Ursa::CONFIG["layout_extension"]}"))
-			template.render(Object.new,:map=>map)
-		end
-	end
 	
 	def to_html(markdown_string)
 		Maruku.new(markdown_string).to_html
@@ -171,4 +165,20 @@ module Ursa
 		end
 	end
 
+#----------------------------------------------------------------------template helpers start from here---------------------
+
+	def tag(partial,map={})
+		if($CURRENT_DIR!=nil && File.exists?(File.join($CURRENT_DIR,"#{Ursa::CONFIG["partialsdir"]}",partial.to_s+".#{Ursa::CONFIG["layout_extension"]}")))
+			template = Tilt.new(File.join($CURRENT_DIR,"#{Ursa::CONFIG["partialsdir"]}",partial.to_s+".#{Ursa::CONFIG["layout_extension"]}"))
+			template.render(Object.new,:map=>map)
+		end
+	end
+
+	def css(path)
+		"<link rel=\"stylesheet\" type=\"text/css\" href=\"#{path}\">"
+	end
+
+	def js(path)
+		"<script type=\"text/javascript\" src=\"#{path}\"></script>"	
+	end
 end
