@@ -220,6 +220,10 @@ EOH
 		"<script type=\"text/javascript\" src=\"#{path}\"></script>"	
 	end
 
+	def feed(feed_title,path)
+		"<link rel=\"alternate\" type=\"application/rss+xml\" title=\"#{feed_title}\" href=\"#{path}\" />"
+	end
+
 	def site_title
 		Ursa::CONFIG["site_title"]
 	end
