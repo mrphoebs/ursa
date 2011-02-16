@@ -28,13 +28,14 @@ ATOM_TEMPLATE = <<EOH
     %email~ "***site author email***"
   
   - posts[0...10].each do |post|
-    %entry
-      %title~ post.title
-      %link{:href=>"***site url***"+post.file}
-      %id~ "***site url***"+post.file
-      %updated~ atom_date(post.date)
-      %content{:type=>"html"}
-        post.content
+    - if post.type == "**blogposttype**"
+      %entry
+        %title~ post.title
+        %link{:href=>"***site url***"+post.file}
+        %id~ "***site url***"+post.file
+        %updated~ atom_date(post.date)
+        %content{:type=>"html"}
+          = post.content
 EOH
 
 
